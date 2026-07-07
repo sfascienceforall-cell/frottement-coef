@@ -1,0 +1,111 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#fff;font-family:system-ui,-apple-system,sans-serif;}
+canvas{display:block;border-radius:12px;border:1.5px solid #e8e8e8;touch-action:none;}
+.fml{font-size:13px;padding:10px 16px;border-radius:20px;background:#f5f5f5;border:1.5px solid #d0d0d0;color:#2c2c2a;margin:6px 0;font-family:ui-monospace,monospace;line-height:1.8;}
+.row{display:flex;align-items:center;gap:10px;margin:6px 0;flex-wrap:wrap;}
+.pill{font-size:13px;font-weight:500;color:#2c2c2a;background:#f5f5f5;border:1.5px solid #d0d0d0;border-radius:20px;padding:6px 14px;white-space:nowrap;}
+.btn{padding:8px 18px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1.5px solid #d0d0d0;background:#fff;color:#2c2c2a;}
+.val{min-width:70px;text-align:center;font-size:13px;font-weight:500;color:#2c2c2a;background:#f5f5f5;border:1.5px solid #d0d0d0;border-radius:20px;padding:5px 10px;}
+.info{font-size:12px;padding:8px 14px;border-radius:20px;background:#f5f5f5;border:1.5px solid #d0d0d0;color:#555;margin:6px 0;font-family:ui-monospace,monospace;line-height:1.8;}
+input[type=range]{flex:1;min-width:110px;}
+</style>
+
+<canvas id="cv" style="width:100%;height:64vh;min-height:400px;"></canvas>
+<div class="fml">
+  <b>Statique :</b> <b style="color:#E24B4A">|F̄fs| = Fₐ ≤ μₛ·N</b> &nbsp;|&nbsp; au décollage, <b style="color:#a32d2d">chute</b> vers <b>Cinétique :</b> <b style="color:#D08717">|F̄fc| = μc·N</b> (constant) &nbsp;|&nbsp; <b style="color:#a32d2d">μc ≤ μₛ</b>
+</div>
+
+<div class="row">
+  <span class="pill" style="min-width:135px;border-color:#9FE1CB;color:#1D9E75;">Fₐ &nbsp;force appliquée</span>
+  <input type="range" id="Fa" min="0" max="25" value="6" step="0.25" style="accent-color:#1D9E75;">
+  <span class="val" id="Fav" style="border-color:#9FE1CB;color:#1D9E75;">6 N</span>
+</div>
+<div class="row">
+  <span class="pill" style="min-width:135px;border-color:#f09595;color:#E24B4A;">μₛ &nbsp;statique</span>
+  <input type="range" id="mus" min="0.1" max="1" value="0.6" step="0.05" style="accent-color:#E24B4A;">
+  <span class="val" id="musv" style="border-color:#f09595;color:#E24B4A;">0.60</span>
+  <span class="pill" style="min-width:135px;border-color:#f5c88f;color:#BA7517;">μc &nbsp;cinétique</span>
+  <input type="range" id="muc" min="0.05" max="1" value="0.3" step="0.05" style="accent-color:#BA7517;">
+  <span class="val" id="mucv" style="border-color:#f5c88f;color:#BA7517;">0.30</span>
+</div>
+
+<div class="info" id="info"></div>
+
+<script>
+const cv=document.getElementById('cv'),ctx=cv.getContext('2d');
+const RED='#E24B4A',DRED='#a32d2d',BLUE='#378ADD',BLUE_D='#185fa5',BLUE_BG='#e6f1fb',GREEN='#1D9E75',ORANGE='#D08717',GREY='#9aa0a6',AX='#c8ccd0';
+let W=0,H=0,dpr=1;const m=2,g=9.81,Fmax=25;
+let Fa=6,mus=0.6,muc=0.3,x=0.3,v=0;
+function bind(id,fmt,f){const s=document.getElementById(id),o=document.getElementById(id+'v');
+  s.addEventListener('input',()=>{const val=parseFloat(s.value);f(val);o.textContent=fmt(val);});}
+bind('Fa',v=>v+' N',v=>Fa=v);
+bind('mus',v=>v.toFixed(2),v=>{mus=v;if(muc>mus){muc=mus;document.getElementById('muc').value=mus;document.getElementById('mucv').textContent=mus.toFixed(2);}});
+bind('muc',v=>v.toFixed(2),v=>{muc=Math.min(v,mus);if(v>mus){document.getElementById('muc').value=mus;document.getElementById('mucv').textContent=mus.toFixed(2);}});
+function syncSize(){const r=cv.getBoundingClientRect();dpr=window.devicePixelRatio||1;
+  const nW=Math.round(r.width)||700,nH=Math.round(r.height)||400;
+  if(nW!==W||nH!==H){W=nW;H=nH;cv.width=W*dpr;cv.height=H*dpr;}ctx.setTransform(dpr,0,0,dpr,0,0);}
+function arrow(xx,yy,vx,vy,col,lab,w){const len=Math.hypot(vx,vy);if(len<3)return;const ex=xx+vx,ey=yy+vy;
+  ctx.strokeStyle=col;ctx.lineWidth=w||2.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(ex,ey);ctx.stroke();
+  const hs=(w||2.5)*3.2,ang=Math.atan2(vy,vx);ctx.fillStyle=col;ctx.save();ctx.translate(ex,ey);ctx.rotate(ang);
+  ctx.beginPath();ctx.moveTo(hs,0);ctx.lineTo(-hs*0.7,-hs*0.55);ctx.lineTo(-hs*0.7,hs*0.55);ctx.closePath();ctx.fill();ctx.restore();
+  if(lab){ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.fillStyle=col;ctx.fillText(lab,ex+vx/len*15,ey+vy/len*15+4);}}
+
+function draw(){syncSize();ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
+  const N=m*g,Fsmax=mus*N,Fc=muc*N;
+  // relation directe Ff(Fa)
+  const sliding=Fa>Fsmax+1e-9;
+  const Ff=sliding?Fc:Fa;
+  const a=sliding?(Fa-Fc)/m:0;
+
+  // ---- SCÈNE ----
+  const gy=H*0.38,size=42,px=0.14*W+x*(W*0.60);
+  ctx.strokeStyle=AX;ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(20,gy);ctx.lineTo(W-96,gy);ctx.stroke();
+  ctx.lineWidth=1;for(let hx=24;hx<W-96;hx+=15){ctx.beginPath();ctx.moveTo(hx,gy);ctx.lineTo(hx-8,gy+9);ctx.stroke();}
+  // bloc
+  ctx.fillStyle=BLUE_BG;ctx.strokeStyle=BLUE;ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(px-size/2,gy-size,size,size,7);ctx.fill();ctx.stroke();
+  arrow(px,gy-size,0,-32,BLUE,'F̄N',2);arrow(px,gy,0,32,BLUE,'mḡ',2);
+  if(Fa>0.2)arrow(px+size/2,gy-size/2,Math.min(Fa*4.6,110),0,GREEN,'F̄ₐ',3);
+  if(Ff>0.2)arrow(px-size/2,gy-size/2,-Math.min(Ff*4.6,110),0,sliding?ORANGE:RED,sliding?'F̄fc':'F̄fs',3);
+  if(sliding&&Math.abs(v)>0.05)arrow(px,gy-size-24,Math.min(v*7,90),0,'#0F6E56','v̄',2.4);
+  ctx.font='700 14px system-ui';ctx.textAlign='center';ctx.fillStyle=sliding?DRED:GREY;
+  ctx.fillText(sliding?'ÇA GLISSE — frottement cinétique (Ff = μc·N)':'immobile — frottement statique (Ff = Fₐ)',W*0.42,26);
+
+  // ---- JAUGE VERTICALE |Ff| ----
+  const jx=W-64,jTop=48,jBot=gy+8,jH=jBot-jTop,jw=28;
+  const mapJ=f=>jBot-Math.min(f,Fmax)/Fmax*jH;
+  ctx.fillStyle='#f2f2f2';ctx.strokeStyle='#dcdcdc';ctx.lineWidth=1;ctx.beginPath();ctx.roundRect(jx,jTop,jw,jH,6);ctx.fill();ctx.stroke();
+  const ft=mapJ(Ff);ctx.fillStyle=sliding?ORANGE:RED;ctx.beginPath();ctx.roundRect(jx+2,ft,jw-4,jBot-ft,4);ctx.fill();
+  // seuils
+  ctx.strokeStyle=RED;ctx.setLineDash([4,3]);ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(jx-6,mapJ(Fsmax));ctx.lineTo(jx+jw+6,mapJ(Fsmax));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=RED;ctx.font='600 10px ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('μₛN='+Fsmax.toFixed(1),jx-8,mapJ(Fsmax)+3);
+  ctx.strokeStyle=ORANGE;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(jx-6,mapJ(Fc));ctx.lineTo(jx+jw+6,mapJ(Fc));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=ORANGE;ctx.fillText('μcN='+Fc.toFixed(1),jx-8,mapJ(Fc)+3);
+  // flèche de chute
+  if(sliding){ctx.strokeStyle=DRED;ctx.lineWidth=1.6;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(jx+jw+14,mapJ(Fsmax));ctx.lineTo(jx+jw+14,mapJ(Fc));ctx.stroke();ctx.setLineDash([]);
+    ctx.beginPath();ctx.moveTo(jx+jw+14,mapJ(Fc));ctx.lineTo(jx+jw+10,mapJ(Fc)-6);ctx.lineTo(jx+jw+18,mapJ(Fc)-6);ctx.closePath();ctx.fillStyle=DRED;ctx.fill();
+    ctx.save();ctx.translate(jx+jw+26,(mapJ(Fsmax)+mapJ(Fc))/2);ctx.rotate(Math.PI/2);ctx.fillStyle=DRED;ctx.font='600 10px system-ui';ctx.textAlign='center';ctx.fillText('chute',0,0);ctx.restore();}
+  ctx.fillStyle=GREY;ctx.font='700 12px system-ui';ctx.textAlign='center';ctx.fillText('|F̄f|',jx+jw/2,jBot+16);
+
+  // ---- GRAPHE |Ff| vs |Fa| ----
+  const g2={x:64,y:gy+52,w:W-64-96,h:H-gy-96};
+  const mfx=f=>g2.x+f/Fmax*g2.w, mfy=f=>g2.y+g2.h-f/Fmax*g2.h*1.6;
+  ctx.strokeStyle=AX;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(g2.x,g2.y);ctx.lineTo(g2.x,g2.y+g2.h);ctx.lineTo(g2.x+g2.w,g2.y+g2.h);ctx.stroke();
+  ctx.fillStyle=GREY;ctx.font='600 12px system-ui';ctx.textAlign='left';ctx.fillText('|F̄f| (N)',g2.x+4,g2.y-6);ctx.textAlign='right';ctx.fillText('|F̄ₐ| (N)',g2.x+g2.w,g2.y+g2.h+16);
+  ctx.strokeStyle=RED;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(mfx(0),mfy(0));ctx.lineTo(mfx(Fsmax),mfy(Fsmax));ctx.stroke();
+  ctx.strokeStyle=DRED;ctx.setLineDash([4,3]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mfx(Fsmax),mfy(Fsmax));ctx.lineTo(mfx(Fsmax),mfy(Fc));ctx.stroke();ctx.setLineDash([]);
+  ctx.strokeStyle=ORANGE;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(mfx(Fsmax),mfy(Fc));ctx.lineTo(mfx(Fmax),mfy(Fc));ctx.stroke();
+  ctx.setLineDash([3,4]);ctx.strokeStyle='#d8d8d8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(g2.x,mfy(Fsmax));ctx.lineTo(mfx(Fsmax),mfy(Fsmax));ctx.moveTo(g2.x,mfy(Fc));ctx.lineTo(mfx(Fsmax),mfy(Fc));ctx.stroke();ctx.setLineDash([]);
+  ctx.fillStyle=RED;ctx.font='600 11px ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('μₛ·N',g2.x-6,mfy(Fsmax)+4);
+  ctx.fillStyle=ORANGE;ctx.fillText('μc·N',g2.x-6,mfy(Fc)+4);
+  ctx.fillStyle=GREY;ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText('statique',mfx(Fsmax/2),mfy(Fsmax/2)-12);ctx.fillText('cinétique',mfx((Fsmax+Fmax)/2),mfy(Fc)-12);
+  const cpx=mfx(Fa),cpy=mfy(Ff);ctx.fillStyle=sliding?ORANGE:RED;ctx.beginPath();ctx.arc(cpx,cpy,6,0,7);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+
+  document.getElementById('info').innerHTML=
+    'N=mg='+N.toFixed(1)+' N &nbsp;|&nbsp; <b style="color:'+RED+'">seuil μₛN='+Fsmax.toFixed(1)+' N</b> &nbsp;|&nbsp; '+
+    '<b style="color:'+(sliding?ORANGE:RED)+'">Ff='+Ff.toFixed(1)+' N</b>'+(sliding?(' (chuté de '+(Fsmax-Fc).toFixed(1)+' N)'):'')+' &nbsp;|&nbsp; a='+a.toFixed(2)+' m/s²';
+
+  const dt=0.016;if(sliding){v+=a*dt;}else v=0;x+=v*dt*0.05;if(x>1.02)x=0;
+  requestAnimationFrame(draw);}
+draw();
+</script>
