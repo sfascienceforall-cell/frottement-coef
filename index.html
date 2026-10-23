@@ -1,3 +1,13 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coefficient de frottement · SFA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700&family=STIX+Two+Text:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@500&display=swap">
+</head>
+<body>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 body{background:#fff;font-family:system-ui,-apple-system,sans-serif;}
@@ -10,6 +20,81 @@ canvas{display:block;border-radius:12px;border:1.5px solid #e8e8e8;touch-action:
 .info{font-size:12px;padding:8px 14px;border-radius:20px;background:#f5f5f5;border:1.5px solid #d0d0d0;color:#555;margin:6px 0;font-family:ui-monospace,monospace;line-height:1.8;}
 input[type=range]{flex:1;min-width:110px;}
 </style>
+<style id="sfa-kit">
+/* Kit SFA (clair) — plan blanc sur fond gris-bleu froid, encre bleu nuit, or en accent unique, réglages en règle graduée. */
+:root{--bg:#f3f5f8;--paper:#ffffff;--ink:#0c1f2e;--muted:#5b6b7b;--faint:#8a98a6;--rule:#dfe4ea;--rule2:#c9d1da;
+  --gold:#d9973f;--gold-ink:#9a6420;--press:#e9edf2;
+  --f-ui:"Mulish",system-ui,-apple-system,"Segoe UI",sans-serif;--f-math:"STIX Two Text","Cambria Math",serif;
+  --f-num:"JetBrains Mono",ui-monospace,monospace;color-scheme:light}
+html{background:var(--bg)}
+body{background:var(--bg)!important;color:var(--ink);font-family:var(--f-ui)!important;font-size:15px;line-height:1.5;
+  max-width:1180px;margin:0 auto!important;padding:20px 16px 32px!important}
+.sfa-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:6px 24px;
+  border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:16px}
+.sfa-head h1{font:700 1.5rem/1.2 var(--f-ui);margin:0;letter-spacing:-.005em;text-wrap:balance}
+.sfa-head h1 small{display:block;font:400 .88rem var(--f-ui);color:var(--muted);margin-top:3px}
+.sfa-head .sfa-tag{font:600 .8rem var(--f-ui);color:var(--muted)}
+.sfa-head .sfa-tag b{color:var(--gold-ink);font-weight:700}
+select{font:500 .86rem var(--f-ui)!important;border:1px solid var(--rule2)!important;border-radius:3px!important;background:var(--paper)!important;color:var(--ink)!important;padding:5px 8px!important}
+.sfa-stage{border:1px solid var(--rule)!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(12,31,46,.05),0 8px 24px -16px rgba(12,31,46,.18)}
+.sfa-stage canvas{border:0!important;box-shadow:none!important}
+canvas{background:var(--paper);border:1px solid var(--rule)!important;border-radius:4px!important;box-shadow:0 1px 2px rgba(12,31,46,.05),0 8px 24px -16px rgba(12,31,46,.18)}
+.row{gap:12px!important;margin:10px 0!important}
+.pill,.lbl,.tag{background:none!important;border:0!important;border-radius:0!important;padding:0!important;
+  font:600 .86rem var(--f-ui)!important;color:var(--muted);min-width:0}
+.val{background:none!important;border:0!important;border-radius:0!important;padding:0!important;
+  font:500 .9rem var(--f-num)!important;font-variant-numeric:tabular-nums;text-align:right}
+.btn{background:transparent!important;border:1px solid var(--rule2)!important;border-radius:3px!important;color:var(--muted)!important;
+  font:600 .82rem var(--f-ui)!important;padding:6px 12px!important;transition:color .15s,background .15s}
+.btn:hover{color:var(--ink)!important;background:var(--press)!important}
+.btn.on{background:var(--ink)!important;border-color:var(--ink)!important;color:#fff!important;box-shadow:inset 0 -2px 0 var(--gold)}
+.fml{background:transparent!important;border:0!important;border-left:2px solid var(--gold)!important;border-radius:0!important;
+  font:400 1.08rem/1.7 var(--f-math)!important;color:var(--ink);padding:4px 0 4px 14px!important;margin:14px 0!important}
+.info{background:var(--paper)!important;border:1px solid var(--rule)!important;border-radius:3px!important;
+  font:500 .84rem/1.8 var(--f-num)!important;color:var(--muted)!important;padding:8px 14px!important}
+input[type=range]{-webkit-appearance:none;appearance:none;height:24px;background:linear-gradient(var(--rule2),var(--rule2)) center/100% 2px no-repeat;cursor:pointer;--pc:var(--gold)}
+input[type=range]::-webkit-slider-runnable-track{height:2px;background:transparent}
+input[type=range]::-moz-range-track{height:2px;background:transparent}
+input[type=range]::-moz-range-progress{height:2px;background:var(--pc)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:6px;height:20px;border-radius:1px;background:var(--pc);margin-top:-9px;border:0}
+input[type=range]::-moz-range-thumb{width:6px;height:20px;border-radius:1px;background:var(--pc);border:0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--gold);outline-offset:3px}
+.sfa-foot{margin-top:22px;padding-top:10px;border-top:1px solid var(--rule);font-size:.78rem;color:var(--faint)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<script>
+/* Curseurs : la couleur du curseur reprend celle de son accent-color d'origine ; remplissage gauche en couleur. */
+addEventListener('DOMContentLoaded',()=>{
+/* Curseurs : couleur reprise de accent-color, remplissage à gauche. Resynchronisé en continu pour suivre
+   les curseurs créés ou déplacés par la simulation elle-même. */
+const fill=r=>{if(!r.dataset.sfa){r.dataset.sfa=1;const c=r.style.accentColor||getComputedStyle(r).accentColor;
+    if(c&&c!=='auto')r.style.setProperty('--pc',c);}
+  const v=r.value+'|'+r.min+'|'+r.max;if(r._sv===v)return;r._sv=v;
+  const p=(r.value-r.min)/(r.max-r.min)*100;
+  r.style.background=`linear-gradient(to right,var(--pc) ${p}%,var(--rule2) ${p}%) center/100% 2px no-repeat`;};
+const all=()=>document.querySelectorAll('input[type=range]').forEach(fill);
+all();document.addEventListener('input',e=>{if(e.target.matches&&e.target.matches('input[type=range]'))fill(e.target);});
+setInterval(all,150);
+/* Contrôles écrits en style en ligne (sans classe) : on leur donne les classes du kit. */
+const st=e=>(e.getAttribute('style')||'').replace(/\s/g,'').toLowerCase();
+const isPill=e=>/border-radius:(1[6-9]|20|99)px/.test(st(e));
+document.querySelectorAll('span').forEach(sp=>{if(sp.classList.length||!isPill(sp))return;
+  const n=sp.nextElementSibling,pv=sp.previousElementSibling;
+  if(n&&n.matches('input[type=range],select,button'))sp.classList.add('pill');
+  else if(pv&&pv.matches('input[type=range],select'))sp.classList.add('val');
+  else sp.classList.add('pill');});
+document.querySelectorAll('div').forEach(d=>{if(d.classList.length)return;const s=st(d);
+  if(/border-radius:(1[6-9]|20)px/.test(s)&&/monospace/.test(s))d.classList.add(d.id==='fml'?'fml':'info');
+  else if(d.querySelector(':scope>canvas')&&/border-radius:1[0-4]px/.test(s))d.classList.add('sfa-stage');});
+const tag=b=>{const s=st(b);b.classList.toggle('on',/#185fa5|rgb\(24,95,165\)/.test(s)&&!/#fff[;f]|#ffffff|rgb\(255,255,255\)/.test(s.match(/background:[^;]+/)?.[0]||''));};
+document.querySelectorAll('button:not(.btn)').forEach(b=>{b.classList.add('btn','sfa-n');tag(b);});
+new MutationObserver(ms=>ms.forEach(m=>{if(m.target.classList&&m.target.classList.contains('sfa-n'))tag(m.target);}))
+  .observe(document.body,{subtree:true,attributes:true,attributeFilter:['style']});
+});
+</script>
+<header class="sfa-head"><h1>Coefficient de frottement<small>Frottement statique et cinétique</small></h1><span class="sfa-tag"><b>SFA</b> · Physique · Dynamique</span></header>
+
+
 
 <canvas id="cv" style="width:100%;height:64vh;min-height:400px;"></canvas>
 <div class="fml">
@@ -49,7 +134,7 @@ function arrow(xx,yy,vx,vy,col,lab,w){const len=Math.hypot(vx,vy);if(len<3)retur
   ctx.strokeStyle=col;ctx.lineWidth=w||2.5;ctx.lineCap='round';ctx.beginPath();ctx.moveTo(xx,yy);ctx.lineTo(ex,ey);ctx.stroke();
   const hs=(w||2.5)*3.2,ang=Math.atan2(vy,vx);ctx.fillStyle=col;ctx.save();ctx.translate(ex,ey);ctx.rotate(ang);
   ctx.beginPath();ctx.moveTo(hs,0);ctx.lineTo(-hs*0.7,-hs*0.55);ctx.lineTo(-hs*0.7,hs*0.55);ctx.closePath();ctx.fill();ctx.restore();
-  if(lab){ctx.font='600 12px system-ui';ctx.textAlign='center';ctx.fillStyle=col;ctx.fillText(lab,ex+vx/len*15,ey+vy/len*15+4);}}
+  if(lab){ctx.font='600 12px Mulish,system-ui,sans-serif';ctx.textAlign='center';ctx.fillStyle=col;ctx.fillText(lab,ex+vx/len*15,ey+vy/len*15+4);}}
 
 function draw(){syncSize();ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillRect(0,0,W,H);
   const N=m*g,Fsmax=mus*N,Fc=muc*N;
@@ -65,11 +150,13 @@ function draw(){syncSize();ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillR
   // bloc
   ctx.fillStyle=BLUE_BG;ctx.strokeStyle=BLUE;ctx.lineWidth=2.5;ctx.beginPath();ctx.roundRect(px-size/2,gy-size,size,size,7);ctx.fill();ctx.stroke();
   arrow(px,gy-size,0,-32,BLUE,'F̄N',2);arrow(px,gy,0,32,BLUE,'mḡ',2);
-  if(Fa>0.2)arrow(px+size/2,gy-size/2,Math.min(Fa*4.6,110),0,GREEN,'F̄ₐ',3);
+  if(Fa>0.2)arrow(px+size/2,gy-size/2,Math.max(0,Math.min(Fa*4.6,110,W-96-(px+size/2)-22)),0,GREEN,'F̄ₐ',3);
   if(Ff>0.2)arrow(px-size/2,gy-size/2,-Math.min(Ff*4.6,110),0,sliding?ORANGE:RED,sliding?'F̄fc':'F̄fs',3);
   if(sliding&&Math.abs(v)>0.05)arrow(px,gy-size-24,Math.min(v*7,90),0,'#0F6E56','v̄',2.4);
-  ctx.font='700 14px system-ui';ctx.textAlign='center';ctx.fillStyle=sliding?DRED:GREY;
-  ctx.fillText(sliding?'ÇA GLISSE — frottement cinétique (Ff = μc·N)':'immobile — frottement statique (Ff = Fₐ)',W*0.42,26);
+  const ttl=sliding?'ÇA GLISSE — frottement cinétique (Ff = μc·N)':'immobile — frottement statique (Ff = Fₐ)';
+  let tfs=14;ctx.font='700 '+tfs+'px Mulish,system-ui,sans-serif';const tw0=ctx.measureText(ttl).width;if(tw0>W-24){tfs=Math.max(10,Math.floor(14*(W-24)/tw0));ctx.font='700 '+tfs+'px Mulish,system-ui,sans-serif';}
+  const tw=ctx.measureText(ttl).width;ctx.textAlign='center';ctx.fillStyle=sliding?DRED:GREY;
+  ctx.fillText(ttl,Math.max(W*0.42,tw/2+12),26);
 
   // ---- JAUGE VERTICALE |Ff| ----
   const jx=W-64,jTop=48,jBot=gy+8,jH=jBot-jTop,jw=28;
@@ -78,27 +165,28 @@ function draw(){syncSize();ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillR
   const ft=mapJ(Ff);ctx.fillStyle=sliding?ORANGE:RED;ctx.beginPath();ctx.roundRect(jx+2,ft,jw-4,jBot-ft,4);ctx.fill();
   // seuils
   ctx.strokeStyle=RED;ctx.setLineDash([4,3]);ctx.lineWidth=1.4;ctx.beginPath();ctx.moveTo(jx-6,mapJ(Fsmax));ctx.lineTo(jx+jw+6,mapJ(Fsmax));ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle=RED;ctx.font='600 10px ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('μₛN='+Fsmax.toFixed(1),jx-8,mapJ(Fsmax)+3);
+  const bgT=(t,xx,yy)=>{const w=ctx.measureText(t).width;const f=ctx.fillStyle;ctx.fillStyle='rgba(255,255,255,0.9)';ctx.fillRect(xx-w-2,yy-9,w+4,12);ctx.fillStyle=f;ctx.fillText(t,xx,yy);};
+  ctx.fillStyle=RED;ctx.font='600 10px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';bgT('μₛN='+Fsmax.toFixed(1),jx-8,mapJ(Fsmax)+3);
   ctx.strokeStyle=ORANGE;ctx.setLineDash([4,3]);ctx.beginPath();ctx.moveTo(jx-6,mapJ(Fc));ctx.lineTo(jx+jw+6,mapJ(Fc));ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle=ORANGE;ctx.fillText('μcN='+Fc.toFixed(1),jx-8,mapJ(Fc)+3);
+  ctx.fillStyle=ORANGE;bgT('μcN='+Fc.toFixed(1),jx-8,Math.max(mapJ(Fc)+3,mapJ(Fsmax)+15));
   // flèche de chute
   if(sliding){ctx.strokeStyle=DRED;ctx.lineWidth=1.6;ctx.setLineDash([2,2]);ctx.beginPath();ctx.moveTo(jx+jw+14,mapJ(Fsmax));ctx.lineTo(jx+jw+14,mapJ(Fc));ctx.stroke();ctx.setLineDash([]);
     ctx.beginPath();ctx.moveTo(jx+jw+14,mapJ(Fc));ctx.lineTo(jx+jw+10,mapJ(Fc)-6);ctx.lineTo(jx+jw+18,mapJ(Fc)-6);ctx.closePath();ctx.fillStyle=DRED;ctx.fill();
-    ctx.save();ctx.translate(jx+jw+26,(mapJ(Fsmax)+mapJ(Fc))/2);ctx.rotate(Math.PI/2);ctx.fillStyle=DRED;ctx.font='600 10px system-ui';ctx.textAlign='center';ctx.fillText('chute',0,0);ctx.restore();}
-  ctx.fillStyle=GREY;ctx.font='700 12px system-ui';ctx.textAlign='center';ctx.fillText('|F̄f|',jx+jw/2,jBot+16);
+    if(mapJ(Fc)-mapJ(Fsmax)>36){ctx.save();ctx.translate(jx+jw+26,(mapJ(Fsmax)+mapJ(Fc))/2);ctx.rotate(Math.PI/2);ctx.fillStyle=DRED;ctx.font='600 10px Mulish,system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('chute',0,0);ctx.restore();}}
+  ctx.fillStyle=GREY;ctx.font='700 12px Mulish,system-ui,sans-serif';ctx.textAlign='center';ctx.fillText('|F̄f|',jx+jw/2,jBot+16);
 
   // ---- GRAPHE |Ff| vs |Fa| ----
-  const g2={x:64,y:gy+52,w:W-64-96,h:H-gy-96};
-  const mfx=f=>g2.x+f/Fmax*g2.w, mfy=f=>g2.y+g2.h-f/Fmax*g2.h*1.6;
+  const g2={x:64,y:gy+70,w:W-64-96,h:H-gy-114};
+  const mfx=f=>g2.x+f/Fmax*g2.w, mfy=f=>g2.y+g2.h-f/Fmax*g2.h*1.2;
   ctx.strokeStyle=AX;ctx.lineWidth=1.5;ctx.beginPath();ctx.moveTo(g2.x,g2.y);ctx.lineTo(g2.x,g2.y+g2.h);ctx.lineTo(g2.x+g2.w,g2.y+g2.h);ctx.stroke();
-  ctx.fillStyle=GREY;ctx.font='600 12px system-ui';ctx.textAlign='left';ctx.fillText('|F̄f| (N)',g2.x+4,g2.y-6);ctx.textAlign='right';ctx.fillText('|F̄ₐ| (N)',g2.x+g2.w,g2.y+g2.h+16);
+  ctx.fillStyle=GREY;ctx.font='600 12px Mulish,system-ui,sans-serif';ctx.textAlign='left';ctx.fillText('|F̄f| (N)',g2.x+4,g2.y-6);ctx.textAlign='right';ctx.fillText('|F̄ₐ| (N)',g2.x+g2.w,g2.y+g2.h+16);
   ctx.strokeStyle=RED;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(mfx(0),mfy(0));ctx.lineTo(mfx(Fsmax),mfy(Fsmax));ctx.stroke();
   ctx.strokeStyle=DRED;ctx.setLineDash([4,3]);ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(mfx(Fsmax),mfy(Fsmax));ctx.lineTo(mfx(Fsmax),mfy(Fc));ctx.stroke();ctx.setLineDash([]);
   ctx.strokeStyle=ORANGE;ctx.lineWidth=2.5;ctx.beginPath();ctx.moveTo(mfx(Fsmax),mfy(Fc));ctx.lineTo(mfx(Fmax),mfy(Fc));ctx.stroke();
   ctx.setLineDash([3,4]);ctx.strokeStyle='#d8d8d8';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(g2.x,mfy(Fsmax));ctx.lineTo(mfx(Fsmax),mfy(Fsmax));ctx.moveTo(g2.x,mfy(Fc));ctx.lineTo(mfx(Fsmax),mfy(Fc));ctx.stroke();ctx.setLineDash([]);
-  ctx.fillStyle=RED;ctx.font='600 11px ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('μₛ·N',g2.x-6,mfy(Fsmax)+4);
-  ctx.fillStyle=ORANGE;ctx.fillText('μc·N',g2.x-6,mfy(Fc)+4);
-  ctx.fillStyle=GREY;ctx.font='11px system-ui';ctx.textAlign='center';ctx.fillText('statique',mfx(Fsmax/2),mfy(Fsmax/2)-12);ctx.fillText('cinétique',mfx((Fsmax+Fmax)/2),mfy(Fc)-12);
+  ctx.fillStyle=RED;ctx.font='600 11px JetBrains Mono,ui-monospace,monospace';ctx.textAlign='right';ctx.fillText('μₛ·N',g2.x-6,mfy(Fsmax)+4);
+  ctx.fillStyle=ORANGE;ctx.fillText('μc·N',g2.x-6,Math.max(mfy(Fc)+4,mfy(Fsmax)+16));
+  ctx.fillStyle=GREY;ctx.font='11px Mulish,system-ui,sans-serif';ctx.textAlign='center';ctx.textAlign='right';ctx.fillText('statique',mfx(Fsmax/2)-8,mfy(Fsmax/2)-4);ctx.textAlign='center';ctx.fillText('cinétique',Math.max(mfx((Fsmax+Fmax)/2),mfx(Fsmax)+ctx.measureText('cinétique').width/2+6),mfy(Fc)-12);
   const cpx=mfx(Fa),cpy=mfy(Ff);ctx.fillStyle=sliding?ORANGE:RED;ctx.beginPath();ctx.arc(cpx,cpy,6,0,7);ctx.fill();ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
 
   document.getElementById('info').innerHTML=
@@ -109,3 +197,6 @@ function draw(){syncSize();ctx.clearRect(0,0,W,H);ctx.fillStyle='#fff';ctx.fillR
   requestAnimationFrame(draw);}
 draw();
 </script>
+<footer class="sfa-foot">Science For All · simulations interactives</footer>
+</body>
+</html>
